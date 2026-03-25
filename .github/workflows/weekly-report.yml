@@ -1,0 +1,50 @@
+# Weekly Testing Report → Slack (Incoming Webhook)
+#
+# Schedule: Friday 11:00 UTC ≈ 12:00 CET (UTC+1). Adjust cron if you use a different timezone.
+# Manual run: Actions → "Weekly report to Slack" → Run workflow
+
+name: Weekly report to Slack
+
+on:
+  schedule:
+    # Minute hour day-of-month month day-of-week (UTC). 5 = Friday.
+    - cron: "0 11 * * 5"
+  workflow_dispatch:
+
+jobs:
+  post-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build report and post to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_REPORT_TITLE: ${{ secrets.SLACK_REPORT_TITLE }}
+          CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+          CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+          CHECKLY_CHECK_GROUP_ID: ${{ secrets.CHECKLY_CHECK_GROUP_ID }}
+          CHECKLY_E2E_CHECK_GROUP_ID: ${{ secrets.CHECKLY_E2E_CHECK_GROUP_ID }}
+          CHECKLY_LANDING_PAGE_CHECK_GROUP_ID: ${{ secrets.CHECKLY_LANDING_PAGE_CHECK_GROUP_ID }}
+          CHECKLY_PUBLIC_ROUTES_CHECK_GROUP_ID: ${{ secrets.CHECKLY_PUBLIC_ROUTES_CHECK_GROUP_ID }}
+          GOOGLE_SHEETS_SPREADSHEET_ID: ${{ secrets.GOOGLE_SHEETS_SPREADSHEET_ID }}
+          GOOGLE_SHEETS_SPREADSHEET_URL: ${{ secrets.GOOGLE_SHEETS_SPREADSHEET_URL }}
+          GOOGLE_SHEETS_RANGE: ${{ secrets.GOOGLE_SHEETS_RANGE }}
+          GOOGLE_SHEETS_API_KEY: ${{ secrets.GOOGLE_SHEETS_API_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          GOOGLE_SHEETS_MANUAL_TEST_COLUMN: ${{ secrets.GOOGLE_SHEETS_MANUAL_TEST_COLUMN }}
+          GOOGLE_SHEETS_MANUAL_TEST_VALUES: ${{ secrets.GOOGLE_SHEETS_MANUAL_TEST_VALUES }}
+        run: |
+          set -euo pipefail
+          node buildWeeklyReport.js | node postSlackWebhook.js

@@ -70,6 +70,10 @@ web_modules/
 .env.*
 !.env.example
 
+# Cloud service account keys (never commit — use GitHub Secrets or GOOGLE_APPLICATION_CREDENTIALS locally)
+grafana-*.json
+*-service-account.json
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
